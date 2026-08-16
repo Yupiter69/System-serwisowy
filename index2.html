@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System serwisowy Hydropure Polska</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0B2B30;
+    --navy-2:#123B41;
+    --navy-3:#0E3237;
+    --mist:#F1F6F6;
+    --mist-2:#E4EDEC;
+    --paper:#FFFFFF;
+    --teal:#1C7C82;
+    --clarity:#4FB8C4;
+    --clarity-soft:#DCF0F1;
+    --ink:#0F2427;
+    --ink-soft:#4A5D5F;
+    --gold:#B8902C;
+    --gold-soft:rgba(184,144,44,0.1);
+    --line:rgba(15,36,39,0.12);
+    --line-dark:rgba(255,255,255,0.16);
+    --shadow: 0 20px 50px -20px rgba(11,43,48,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    overflow:hidden;
+    background:var(--mist);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:0 0 1.1rem 0;
+    font-weight:500;
+  }
+  .slide--dark .eyebrow{ color:var(--clarity); }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    margin:0;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .slide--dark h1, .slide--dark h2, .slide--dark h3{ color:var(--paper); }
+
+  p{ margin:0; line-height:1.6; color:var(--ink-soft); }
+  .slide--dark p{ color:rgba(241,246,246,0.78); }
+
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- Stage & Deck ---------- */
+  .stage{ position:relative; width:100vw; height:100vh; overflow:hidden; }
+
+  .deck{
+    display:flex;
+    height:100%;
+    transition: transform 0.75s cubic-bezier(.65,0,.35,1);
+    will-change: transform;
+  }
+
+  .slide{
+    flex:0 0 100vw;
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: clamp(2.2rem, 6vw, 6.5rem);
+    position:relative;
+    overflow:hidden;
+  }
+  .slide--light{ background:var(--mist); }
+  .slide--dark{ background:var(--navy); }
+
+  .slide-inner{
+    width:100%;
+    max-width:1180px;
+    opacity:0;
+    transform:translateY(18px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .slide.is-active .slide-inner{ opacity:1; transform:translateY(0); }
+
+  /* ---------- Ripple signature element ---------- */
+  .ripple{
+    position:absolute;
+    pointer-events:none;
+    border-radius:50%;
+    border:1px solid rgba(79,184,196,0.35);
+  }
+  .slide--light .ripple{ border-color:rgba(28,124,130,0.16); }
+  @keyframes ripple-pulse{
+    0%{ transform:scale(0.94); opacity:0.55; }
+    50%{ transform:scale(1.03); opacity:0.15; }
+    100%{ transform:scale(0.94); opacity:0.55; }
+  }
+  .ripple{ animation: ripple-pulse 7s ease-in-out infinite; }
+  .ripple.r2{ animation-delay:1.4s; }
+  .ripple.r3{ animation-delay:2.8s; }
+
+  /* ---------- Hero ---------- */
+  .hero-wrap{ display:flex; flex-direction:column; gap:2.2rem; position:relative; z-index:2; }
+  .hero-title{ font-size:clamp(2.4rem, 5.2vw, 4.4rem); line-height:1.06; max-width:14ch; }
+  .hero-sub{ max-width:44ch; font-size:1.12rem; }
+  .hero-meta{
+    display:flex; gap:2.4rem; margin-top:1.6rem; padding-top:1.6rem;
+    border-top:1px solid var(--line-dark);
+    font-family:'IBM Plex Mono', monospace; font-size:0.78rem; letter-spacing:0.04em;
+    color:rgba(241,246,246,0.55);
+  }
+
+  /* ---------- Generic layout helpers ---------- */
+  .title-row{ margin-bottom:2.2rem; max-width:38ch; }
+  .title-row h2{ font-size:clamp(1.8rem, 3.2vw, 2.5rem); line-height:1.12; }
+  .title-row .lede{ margin-top:0.7rem; font-size:0.95rem; max-width:52ch; }
+
+  .grid{ display:grid; gap:1.4rem; }
+  .grid-2{ grid-template-columns:1fr 1fr; }
+  .grid-3{ grid-template-columns:repeat(3,1fr); }
+  .grid-4{ grid-template-columns:repeat(4,1fr); }
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:1.5rem 1.5rem 1.6rem;
+  }
+  .slide--dark .card{
+    background:var(--navy-2);
+    border-color:var(--line-dark);
+  }
+  .card h3{ font-size:1.05rem; margin-bottom:0.55rem; font-weight:500; }
+  .card p{ font-size:0.92rem; }
+
+  .droplet-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.9rem; }
+  .droplet-list li{ display:flex; gap:0.85rem; align-items:flex-start; font-size:0.95rem; color:var(--ink-soft); line-height:1.55; }
+  .slide--dark .droplet-list li{ color:rgba(241,246,246,0.8); }
+  .droplet-list svg{ flex:0 0 auto; margin-top:0.28rem; }
+
+  .footnote{ margin-top:1.3rem; font-size:0.78rem; color:var(--ink-soft); opacity:0.75; max-width:34ch; }
+  .slide--dark .footnote{ color:rgba(241,246,246,0.5); }
+
+  .badge-plan{
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.04em;
+    color:var(--gold); border:1px dashed var(--gold); padding:0.12rem 0.4rem; border-radius:20px;
+    margin-left:0.5rem; white-space:nowrap;
+  }
+
+  /* ---------- Three-column pillars (slide 3) ---------- */
+  .pillars{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.6rem; margin-top:2.2rem; }
+  .pillar{
+    background:var(--navy-2);
+    border:1px solid var(--line-dark);
+    border-radius:16px;
+    padding:1.8rem 1.6rem;
+  }
+  .pillar .idx{ font-family:'IBM Plex Mono',monospace; color:var(--clarity); font-size:0.78rem; letter-spacing:0.1em; }
+  .pillar h3{ margin:0.7rem 0 0.6rem; font-size:1.2rem; }
+  .pillar p{ font-size:0.9rem; }
+
+  /* ---------- Phone mockup ---------- */
+  .split{ display:grid; grid-template-columns:300px 1fr; gap:3.4rem; align-items:center; }
+  .phone{
+    width:280px; height:572px;
+    background:var(--navy-2);
+    border-radius:40px;
+    padding:13px;
+    box-shadow:var(--shadow);
+    position:relative;
+    flex:0 0 auto;
+  }
+  .phone-notch{
+    position:absolute; top:13px; left:50%; transform:translateX(-50%);
+    width:110px; height:20px; background:var(--navy-2); border-radius:0 0 14px 14px;
+    z-index:3;
+  }
+  .phone-screen{
+    background:var(--mist);
+    width:100%; height:100%;
+    border-radius:28px;
+    padding:1.9rem 0.95rem 0.9rem;
+    display:flex; flex-direction:column; gap:0.75rem;
+    overflow:hidden;
+  }
+  .app-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:0.1rem; }
+  .app-header .greet{ font-family:'Fraunces',serif; font-size:0.96rem; color:var(--ink); }
+  .app-header .greet span{ display:block; font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--ink-soft); letter-spacing:0.06em; margin-top:2px; }
+  .app-chip{
+    font-family:'IBM Plex Mono',monospace; font-size:0.62rem; background:var(--clarity-soft);
+    color:var(--teal); padding:0.28rem 0.55rem; border-radius:20px; white-space:nowrap;
+  }
+  .app-search{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:0.5rem 0.7rem; display:flex; align-items:center; gap:0.5rem;
+    font-size:0.74rem; color:var(--ink-soft);
+  }
+  .client-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:0.7rem 0.75rem; display:flex; flex-direction:column; gap:0.35rem;
+  }
+  .client-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; }
+  .client-name{ font-size:0.8rem; font-weight:600; color:var(--ink); line-height:1.25; }
+  .client-addr{ font-size:0.68rem; color:var(--ink-soft); margin-top:1px; }
+  .zone-badge{
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem; background:var(--navy);
+    color:var(--clarity-soft); padding:0.16rem 0.42rem; border-radius:6px; flex:0 0 auto;
+  }
+  .client-note{
+    display:flex; align-items:center; gap:0.35rem; font-size:0.64rem; color:var(--gold);
+    background:var(--gold-soft); padding:0.28rem 0.5rem; border-radius:7px;
+  }
+  .client-actions{ display:flex; gap:0.45rem; margin-top:0.1rem; }
+  .action-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:0.3rem;
+    background:var(--navy); color:var(--paper); border-radius:8px; padding:0.38rem 0;
+    font-size:0.62rem; font-family:'IBM Plex Mono',monospace; letter-spacing:0.02em;
+  }
+  .action-btn.ghost{ background:transparent; border:1px solid var(--teal); color:var(--teal); }
+  .phone-navbar{
+    margin-top:auto; display:flex; justify-content:space-around; padding-top:0.55rem;
+    border-top:1px solid var(--line);
+  }
+  .navicon{ display:flex; flex-direction:column; align-items:center; gap:0.18rem; font-size:0.52rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .navicon.active{ color:var(--teal); }
+
+  /* ---------- Calendar / agenda screen ---------- */
+  .day-label{
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.08em;
+    color:var(--ink-soft); text-transform:uppercase; margin:0.15rem 0 0.05rem;
+    display:flex; align-items:center; gap:0.4rem;
+  }
+  .day-label::before{ content:''; width:5px; height:5px; border-radius:50%; background:var(--teal); }
+  .agenda-row{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:0.55rem 0.7rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;
+  }
+  .agenda-row .client-name{ font-size:0.76rem; }
+  .agenda-row .client-addr{ font-size:0.62rem; }
+  .suggest-card{
+    background:var(--gold-soft); border:1px dashed var(--gold); border-radius:10px;
+    padding:0.65rem 0.7rem; display:flex; flex-direction:column; gap:0.35rem; margin-top:0.1rem;
+  }
+  .suggest-card .suggest-head{ display:flex; align-items:center; gap:0.4rem; font-size:0.64rem; color:var(--gold); font-family:'IBM Plex Mono',monospace; letter-spacing:0.03em; }
+  .suggest-card .suggest-body{ font-size:0.72rem; color:var(--ink); line-height:1.4; }
+  .suggest-card .suggest-action{ align-self:flex-start; font-size:0.6rem; font-family:'IBM Plex Mono',monospace; color:var(--teal); border:1px solid var(--teal); border-radius:7px; padding:0.25rem 0.55rem; margin-top:0.15rem; }
+
+  /* ---------- Elements picker screen ---------- */
+  .segmented{ display:flex; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:3px; gap:3px; }
+  .segmented .seg{ flex:1; text-align:center; font-size:0.62rem; font-family:'IBM Plex Mono',monospace; padding:0.4rem 0; border-radius:7px; color:var(--ink-soft); }
+  .segmented .seg.active{ background:var(--navy); color:var(--paper); }
+  .accordion-head{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px 10px 0 0;
+    padding:0.6rem 0.75rem; font-size:0.74rem; font-weight:600; color:var(--ink);
+    border-bottom:none;
+  }
+  .accordion-body{
+    background:var(--paper); border:1px solid var(--line); border-top:none;
+    border-radius:0 0 10px 10px; padding:0.3rem 0.75rem 0.6rem; display:flex; flex-direction:column;
+  }
+  .check-row{ display:flex; align-items:center; gap:0.55rem; padding:0.4rem 0; border-bottom:1px solid var(--mist-2); font-size:0.74rem; color:var(--ink); }
+  .check-row:last-child{ border-bottom:none; }
+  .check-dot{ width:16px; height:16px; border-radius:50%; border:1.5px solid var(--line); flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .check-dot.on{ background:var(--teal); border-color:var(--teal); }
+  .check-row.muted{ color:var(--ink-soft); }
+  .other-field{ font-size:0.68rem; color:var(--ink-soft); font-style:italic; }
+
+  /* ---------- Earnings / karta pracy screen ---------- */
+  .earn-card{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:0.85rem 0.85rem 0.7rem; display:flex; flex-direction:column; gap:0.5rem; }
+  .earn-row{ display:flex; justify-content:space-between; align-items:baseline; font-size:0.72rem; color:var(--ink-soft); }
+  .earn-row .amt{ font-family:'IBM Plex Mono',monospace; color:var(--ink); font-size:0.74rem; }
+  .earn-total{ border-top:1px solid var(--line); margin-top:0.2rem; padding-top:0.55rem; display:flex; justify-content:space-between; align-items:baseline; }
+  .earn-total .lbl{ font-size:0.78rem; font-weight:600; color:var(--ink); }
+  .earn-total .amt{ font-family:'IBM Plex Mono',monospace; font-size:1.05rem; color:var(--teal); font-weight:600; }
+  .earn-month{
+    background:var(--navy); color:var(--paper); border-radius:10px; padding:0.7rem 0.8rem;
+    display:flex; justify-content:space-between; align-items:center; margin-top:0.1rem;
+  }
+  .earn-month .lbl{ font-size:0.64rem; font-family:'IBM Plex Mono',monospace; color:rgba(241,246,246,0.6); }
+  .earn-month .amt{ font-family:'IBM Plex Mono',monospace; font-size:1rem; color:var(--clarity); }
+
+  /* ---------- Automations grid ---------- */
+  .auto-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding:1.5rem; display:flex; flex-direction:column; gap:0.7rem;
+  }
+  .auto-icon{
+    width:38px; height:38px; border-radius:10px; background:var(--clarity-soft);
+    display:flex; align-items:center; justify-content:center; color:var(--teal);
+  }
+
+  /* ---------- Desktop / browser mockup for office ---------- */
+  .browser{
+    background:var(--paper); border-radius:14px; overflow:hidden;
+    box-shadow:var(--shadow); border:1px solid var(--line-dark);
+  }
+  .browser-bar{
+    background:var(--navy-3); padding:0.65rem 1rem; display:flex; align-items:center; gap:0.6rem;
+  }
+  .browser-dot{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.25); }
+  .browser-url{
+    margin-left:0.7rem; background:rgba(255,255,255,0.08); border-radius:20px;
+    padding:0.28rem 0.9rem; font-family:'IBM Plex Mono',monospace; font-size:0.68rem;
+    color:rgba(241,246,246,0.6);
+  }
+  .browser-body{ display:flex; height:380px; }
+  .browser-side{
+    width:170px; background:var(--navy-2); flex:0 0 auto; padding:1.1rem 0.9rem; display:flex; flex-direction:column; gap:0.3rem;
+  }
+  .side-item{
+    display:flex; align-items:center; gap:0.55rem; padding:0.55rem 0.6rem; border-radius:8px;
+    font-size:0.76rem; color:rgba(241,246,246,0.7); font-family:'Inter',sans-serif;
+  }
+  .side-item.active{ background:rgba(79,184,196,0.14); color:var(--paper); }
+  .side-item .plan-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--gold);
+    border:1px dashed var(--gold); padding:0.08rem 0.32rem; border-radius:12px; margin-left:auto;
+  }
+  .browser-main{ flex:1; padding:1.1rem 1.3rem; overflow:hidden; }
+  .browser-toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:0.9rem; }
+  .browser-toolbar h4{ font-family:'Fraunces',serif; font-size:1.05rem; margin:0; font-weight:500; color:var(--ink); }
+  .browser-newbtn{
+    background:var(--teal); color:var(--paper); font-size:0.68rem; font-family:'IBM Plex Mono',monospace;
+    padding:0.4rem 0.8rem; border-radius:8px;
+  }
+  table.data-table{ width:100%; border-collapse:collapse; }
+  table.data-table th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:0.6rem; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--ink-soft); padding:0.4rem 0.6rem; border-bottom:1px solid var(--line);
+  }
+  table.data-table td{
+    padding:0.55rem 0.6rem; font-size:0.76rem; color:var(--ink); border-bottom:1px solid var(--mist-2);
+  }
+  .pill{ font-family:'IBM Plex Mono',monospace; font-size:0.62rem; padding:0.18rem 0.5rem; border-radius:20px; }
+  .pill.a{ background:var(--clarity-soft); color:var(--teal); }
+  .pill.xx{ background:var(--gold-soft); color:var(--gold); }
+  .pill.xxx{ background:rgba(180,60,60,0.1); color:#a94442; }
+
+  .strip{ display:flex; gap:2.2rem; margin-top:1.4rem; justify-content:center; }
+  .strip-item{ display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; color:var(--ink-soft); }
+  .strip-item svg{ color:var(--teal); flex:0 0 auto; }
+
+  /* ---------- KPI dashboard ---------- */
+  .kpi-layout{ display:grid; grid-template-columns:1.5fr 1fr; gap:1.4rem; margin-top:1.6rem; }
+  .chart-card{
+    background:var(--navy-2); border:1px solid var(--line-dark); border-radius:14px; padding:1.6rem 1.7rem;
+  }
+  .chart-card h3{ font-size:0.98rem; margin-bottom:1.4rem; font-weight:500; }
+  .bars{ display:flex; align-items:flex-end; gap:1rem; height:170px; }
+  .bar{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:0.5rem; }
+  .bar-fill{ width:100%; border-radius:6px 6px 3px 3px; background:linear-gradient(180deg, var(--clarity), var(--teal)); }
+  .bar-label{ font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:rgba(241,246,246,0.55); }
+  .kpi-stack{ display:flex; flex-direction:column; gap:1rem; }
+  .kpi-num-card{ background:var(--navy-2); border:1px solid var(--line-dark); border-radius:14px; padding:1.2rem 1.3rem; }
+  .kpi-num-card .val{ font-family:'Fraunces',serif; font-size:2.1rem; color:var(--clarity); font-weight:500; line-height:1; }
+  .kpi-num-card .lbl{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:rgba(241,246,246,0.55); margin-top:0.5rem; letter-spacing:0.03em; }
+  .kpi-illustrative{ margin-top:1.3rem; font-size:0.75rem; color:rgba(241,246,246,0.45); font-family:'IBM Plex Mono',monospace; }
+
+  /* ---------- Roadmap ---------- */
+  .roadmap{ display:flex; flex-direction:column; gap:0; margin-top:1rem; }
+  .rm-step{ display:grid; grid-template-columns:64px 1fr; gap:1.4rem; padding:1.5rem 0; border-bottom:1px solid var(--line); }
+  .rm-step:last-child{ border-bottom:none; }
+  .rm-num{ font-family:'Fraunces',serif; font-size:2rem; color:var(--teal); font-weight:400; }
+  .rm-step h3{ font-size:1.1rem; margin-bottom:0.35rem; }
+  .rm-step p{ font-size:0.92rem; max-width:56ch; }
+
+  /* ---------- Costs table ---------- */
+  .cost-table{ width:100%; border-collapse:collapse; margin-top:1.6rem; }
+  .cost-table th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:0.7rem;
+    letter-spacing:0.06em; color:var(--clarity); text-transform:uppercase;
+    padding:0 1rem 0.9rem 0; border-bottom:1px solid var(--line-dark); font-weight:500;
+  }
+  .cost-table td{
+    padding:1.15rem 1rem 1.15rem 0; border-bottom:1px solid var(--line-dark);
+    font-size:0.98rem; color:rgba(241,246,246,0.85); vertical-align:top;
+  }
+  .cost-table td.label{ color:var(--paper); font-weight:500; max-width:22ch; }
+  .cost-table .price{ font-family:'IBM Plex Mono',monospace; font-size:1.15rem; color:var(--paper); }
+  .cost-table .price small{ font-size:0.7rem; color:rgba(241,246,246,0.55); display:block; margin-top:2px; font-family:'Inter',sans-serif; }
+  .cost-footnote{ margin-top:1.4rem; font-size:0.78rem; color:rgba(241,246,246,0.5); max-width:70ch; line-height:1.6; }
+  .cost-highlight{
+    margin-top:1.6rem; padding:1.1rem 1.3rem; border-left:2px solid var(--gold);
+    background:rgba(184,144,44,0.08); font-size:0.9rem; color:rgba(241,246,246,0.85);
+  }
+
+  /* ---------- Closing ---------- */
+  .closing-ask{
+    margin-top:2.2rem; display:flex; flex-direction:column; gap:0.9rem;
+    padding-top:1.8rem; border-top:1px solid var(--line-dark); max-width:52ch;
+  }
+  .closing-ask li{ display:flex; gap:0.7rem; font-size:0.98rem; color:rgba(241,246,246,0.85); align-items:flex-start; }
+
+  /* ---------- Nav controls ---------- */
+  .nav-btn{
+    position:fixed; top:50%; transform:translateY(-50%);
+    width:46px; height:46px; border-radius:50%;
+    background:rgba(15,36,39,0.06); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index:50; transition:background 0.2s ease, opacity 0.2s ease;
+    color:var(--ink);
+  }
+  .nav-btn:hover{ background:rgba(28,124,130,0.14); }
+  .nav-btn.prev{ left:2rem; }
+  .nav-btn.next{ right:2rem; }
+  .nav-btn[disabled]{ opacity:0.25; pointer-events:none; }
+
+  .progress{
+    position:fixed; bottom:1.8rem; left:50%; transform:translateX(-50%);
+    display:flex; gap:0.5rem; z-index:50; align-items:center;
+    background:rgba(15,36,39,0.06); padding:0.5rem 0.8rem; border-radius:30px;
+    backdrop-filter: blur(6px); max-width:70vw; overflow-x:auto;
+  }
+  .progress .dot{
+    width:6px; height:6px; border-radius:50%; background:rgba(15,36,39,0.25);
+    cursor:pointer; transition:all 0.25s ease; border:none; padding:0; flex:0 0 auto;
+  }
+  .progress .dot.active{ background:var(--teal); width:18px; border-radius:5px; }
+
+  .counter{
+    position:fixed; top:1.8rem; right:2.2rem; z-index:50;
+    font-family:'IBM Plex Mono',monospace; font-size:0.78rem; letter-spacing:0.05em;
+    color:var(--ink-soft);
+  }
+
+  .brand-mark{
+    position:fixed; top:1.8rem; left:2.2rem; z-index:50;
+    font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:0.1em;
+    color:var(--ink-soft); text-transform:uppercase;
+  }
+
+  .hint{
+    position:fixed; bottom:5rem; left:50%; transform:translateX(-50%);
+    font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-soft);
+    opacity:0.7; z-index:50; transition:opacity 0.6s ease; text-align:center;
+  }
+  .hint.hidden{ opacity:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  @media (max-width: 980px){
+    .grid-3, .grid-4, .pillars, .kpi-layout{ grid-template-columns:1fr 1fr; }
+    .split{ grid-template-columns:1fr; }
+    .phone{ margin:0 auto; }
+    .browser-body{ height:auto; flex-direction:column; }
+    .browser-side{ width:100%; flex-direction:row; flex-wrap:wrap; }
+    .nav-btn{ width:38px; height:38px; }
+    .nav-btn.prev{ left:0.6rem; }
+    .nav-btn.next{ right:0.6rem; }
+  }
+  @media (max-width: 620px){
+    .grid-3, .grid-4, .pillars, .grid-2, .kpi-layout{ grid-template-columns:1fr; }
+    .cost-table{ font-size:0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-mark">Hydropure Polska · System serwisowy</div>
+<div class="counter"><span id="counterNow">01</span> / <span id="counterAll">14</span></div>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+    <!-- 01 HERO -->
+    <section class="slide slide--dark">
+      <div class="ripple" style="width:520px;height:520px;top:-140px;right:-120px;"></div>
+      <div class="ripple r2" style="width:340px;height:340px;top:-60px;right:-40px;"></div>
+      <div class="ripple r3" style="width:180px;height:180px;top:20px;right:60px;"></div>
+      <div class="slide-inner hero-wrap">
+        <p class="eyebrow">Propozycja systemu zarządzania serwisem</p>
+        <h1 class="hero-title">System<br>serwisowy<br>Hydropure Polska</h1>
+        <p class="hero-sub">Jedno miejsce dla danych klientów, urządzeń i pracy serwisantów w terenie — w miejsce papierowych druków i rozproszonych plików.</p>
+        <div class="hero-meta">
+          <span>SIERPIEŃ 2026</span>
+          <span>--------</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 SYTUACJA OBECNA -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Punkt wyjścia</p>
+          <h2>Dziś dane żyją<br>w papierze</h2>
+        </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Druki wędrują pocztą</h3>
+            <p>Karty serwisowe, KP i DD trafiają do biura z opóźnieniem — zanim serwis zostanie rozliczony, mija czas.</p>
+          </div>
+          <div class="card">
+            <h3>Informacja o serwisie</h3>
+            <p>Informacja o serwisie / problemie dopiero po otrymaniu maila od serwisanta.</p>
+          </div>
+          <div class="card">
+            <h3>Historia rozproszona</h3>
+            <p>Gwarancje, wymiany i uwagi klienta żyją w teczkach papierowych i pamięci poszczególnych serwisantów.</p>
+          </div>
+          <div class="card">
+            <h3>Każda zmiana to ręczna korekta</h3>
+            <p>Aktualizacja jednej zasady — np. listy statusów — wymaga poprawek w wielu miejscach naraz.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 ROZWIĄZANIE -->
+    <section class="slide slide--dark">
+      <div class="slide-inner">
+        <p class="eyebrow">Proponowane rozwiązanie</p>
+        <h2 style="font-size:clamp(1.9rem,3.4vw,2.7rem); max-width:24ch;">Jeden system, trzy miejsca pracy</h2>
+        <div class="pillars">
+          <div class="pillar">
+            <span class="idx">W TERENIE</span>
+            <h3>Serwisant</h3>
+            <p>Karta klienta, kalendarz wizyt, kontakt i rozliczenie wykonanej pracy — wszystko w telefonie, nawet bez internetu.</p>
+          </div>
+          <div class="pillar">
+            <span class="idx">W BIURZE</span>
+            <h3>Biuro</h3>
+            <p>Pełny nadzór nad danymi klientów, weryfikacja zgłoszeń i rozliczenia — bez szukania w papierach.</p>
+          </div>
+          <div class="pillar">
+            <span class="idx">W ZARZĄDZIE</span>
+            <h3>Raporty</h3>
+            <p>Bieżące wskaźniki pracy serwisu — terminowość, liczba wizyt, stan gwarancji — bez ręcznego zestawiania.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 SERWISANT — LISTA KLIENTÓW -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="split">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="app-header">
+                <div class="greet">Cześć, Piotr<span>DZIŚ · 4 WIZYTY</span></div>
+                <div class="app-chip">Strefa B</div>
+              </div>
+              <div class="app-search">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Szukaj klienta
+              </div>
+
+              <div class="client-card">
+                <div class="client-top">
+                  <div>
+                    <div class="client-name">Katarzyna Zielińska</div>
+                    <div class="client-addr">ul. Słoneczna 12, Kamieniec Wr.</div>
+                  </div>
+                  <div class="zone-badge">B</div>
+                </div>
+                <div class="client-note">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor"/></svg>
+                  Pies na posesji
+                </div>
+                <div class="client-actions">
+                  <div class="action-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Zadzwoń
+                  </div>
+                  <div class="action-btn ghost">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Trasa
+                  </div>
+                </div>
+              </div>
+
+              <div class="client-card">
+                <div class="client-top">
+                  <div>
+                    <div class="client-name">Marek Wójcik</div>
+                    <div class="client-addr">ul. Ogrodowa 5, Czernica</div>
+                  </div>
+                  <div class="zone-badge">C</div>
+                </div>
+                <div class="client-actions">
+                  <div class="action-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Zadzwoń
+                  </div>
+                  <div class="action-btn ghost">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Trasa
+                  </div>
+                </div>
+              </div>
+
+              <div class="phone-navbar">
+                <div class="navicon active">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                  KLIENCI
+                </div>
+                <div class="navicon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  KALENDARZ
+                </div>
+                <div class="navicon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                  HISTORIA
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="eyebrow">W terenie</p>
+            <h2 style="font-size:clamp(1.7rem,2.8vw,2.3rem); margin-bottom:1.6rem; max-width:16ch;">Wszystko, czego trzeba, w jednym telefonie</h2>
+            <ul class="droplet-list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Pełna karta klienta zamiast papierowej płachty — dane zawsze aktualne
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Numer telefonu klienta — jedno dotknięcie, bez przepisywania
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Gotowa trasa do klienta — jedno dotknięcie, bez wpisywania adresu
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Uwagi z poprzednich wizyt zawsze pod ręką — pies, dojazd, życzenia klienta
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 SERWISANT — KALENDARZ WIZYT -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="split">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="app-header">
+                <div class="greet">Kalendarz wizyt<span>TEN TYDZIEŃ</span></div>
+              </div>
+
+              <div class="day-label">Poniedziałek, 18.08</div>
+              <div class="agenda-row">
+                <div>
+                  <div class="client-name">Katarzyna Zielińska</div>
+                  <div class="client-addr">Kamieniec Wrocławski</div>
+                </div>
+                <div class="zone-badge">B</div>
+              </div>
+              <div class="agenda-row">
+                <div>
+                  <div class="client-name">Marek Wójcik</div>
+                  <div class="client-addr">Czernica</div>
+                </div>
+                <div class="zone-badge">C</div>
+              </div>
+
+              <div class="day-label">Wtorek, 19.08</div>
+              <div class="agenda-row">
+                <div>
+                  <div class="client-name">Zofia Nowak</div>
+                  <div class="client-addr">Dobrzykowice</div>
+                </div>
+                <div class="zone-badge">A</div>
+              </div>
+
+              <div class="suggest-card">
+                <div class="suggest-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>
+                  W POBLIŻU TRASY
+                </div>
+                <div class="suggest-body">Roman Gocoł, Kamieniec Wrocławski — najbliższy serwis planowy za 32 dni. Adres blisko wizyty z poniedziałku.</div>
+                <div class="suggest-action">Zaproponuj wcześniejszy termin</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="eyebrow">Planowanie wizyt</p>
+            <h2 style="font-size:clamp(1.7rem,2.8vw,2.3rem); margin-bottom:1.6rem; max-width:18ch;">Kolejność wizyt i podpowiedzi tras</h2>
+            <ul class="droplet-list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Serwisant widzi kolejność zaplanowanych wizyt na dany tydzień
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                System podpowiada klientów w podobnej okolicy, których termin serwisu zbliża się w kolejnych tygodniach
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Pozwala łączyć wizyty w jednej okolicy zamiast wracać tam dwa razy
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Podpowiedź oparta wyłącznie na adresach klientów — decyzję o zmianie terminu zawsze podejmuje serwisant
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 SERWISANT — WYBÓR ELEMENTÓW -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="split">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="app-header">
+                <div class="greet">Nowa wizyta<span>K. ZIELIŃSKA</span></div>
+              </div>
+
+              <div class="segmented">
+                <div class="seg">Mały serwis</div>
+                <div class="seg active">Duży serwis</div>
+                <div class="seg">Awaria</div>
+              </div>
+
+              <div class="accordion-head">
+                Wymienione elementy
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="accordion-body">
+                <div class="check-row"><div class="check-dot on"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Filtr węglowy</div>
+                <div class="check-row"><div class="check-dot on"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Filtr mechaniczny</div>
+                <div class="check-row"><div class="check-dot on"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Mineralizator</div>
+                <div class="check-row muted"><div class="check-dot"></div>Wkład REDOX</div>
+                <div class="check-row"><div class="check-dot on"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Membrana osmotyczna</div>
+                <div class="check-row muted"><div class="check-dot"></div>Zbiornik</div>
+                <div class="check-row muted"><div class="check-dot"></div><span class="other-field">Inne — opisz…</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="eyebrow">Zgłoszenie wizyty</p>
+            <h2 style="font-size:clamp(1.7rem,2.8vw,2.3rem); margin-bottom:1.6rem; max-width:18ch;">Wybór z listy, bez ręcznego opisu</h2>
+            <ul class="droplet-list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Serwisant zaznacza dokładnie to, co faktycznie wymienił — dowolna kombinacja elementów
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Pole „Inne” na wypadek sytuacji, których nie ma na liście
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Lista elementów jest edytowalna przez biuro — bez potrzeby zmian w samej aplikacji
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                To zgłoszenie automatycznie zasila kartę pracy i rozliczenie serwisanta
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 SERWISANT — KARTA PRACY I WYPŁATA -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="split">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="app-header">
+                <div class="greet">Karta pracy<span>WIZYTA ROZLICZONA</span></div>
+              </div>
+
+              <div class="earn-card">
+                <div class="client-name" style="font-size:0.78rem;">Katarzyna Zielińska — strefa B</div>
+                <div class="earn-row"><span>Stawka za wizytę</span><span class="amt">47 zł</span></div>
+                <div class="earn-row"><span>Premia za terminowość</span><span class="amt">+10 zł</span></div>
+                <div class="earn-row"><span>Membrana (prowizja 40%)</span><span class="amt">120 zł</span></div>
+                <div class="earn-row"><span>Mineralizator (prowizja 40%)</span><span class="amt">46 zł</span></div>
+                <div class="earn-total"><span class="lbl">Razem za wizytę</span><span class="amt">223 zł</span></div>
+              </div>
+
+              <div class="earn-month">
+                <span class="lbl">SUMA W TYM MIESIĄCU</span>
+                <span class="amt">3 240 zł</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="eyebrow">Rozliczenie pracy</p>
+            <h2 style="font-size:clamp(1.7rem,2.8vw,2.3rem); margin-bottom:1.6rem; max-width:18ch;">Serwisant widzi swoją wypłatę na bieżąco</h2>
+            <ul class="droplet-list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Kwota za wizytę liczy się od razu — stawka za strefę, premia za terminowość, prowizja za sprzedane elementy
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Serwisant zawsze wie, ile zarobił w danym miesiącu — bez czekania na rozliczenie z biura
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C7C82" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>
+                Biuro zachowuje pełną kontrolę — każda pozycja jest weryfikowana przed wypłatą
+              </li>
+            </ul>
+            <p class="footnote">Przedstawione kwoty są przykładowe — ilustrują sposób wyliczenia, nie stanowią stawek obowiązujących.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 BIURO — PULPIT -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="title-row" style="max-width:none;">
+          <p class="eyebrow">W biurze</p>
+          <h2>Pełna kontrola,<br>mniej ręcznej pracy</h2>
+        </div>
+
+        <div class="browser">
+          <div class="browser-bar">
+            <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+            <div class="browser-url">system.hydropure.pl / klienci</div>
+          </div>
+          <div class="browser-body">
+            <div class="browser-side">
+              <div class="side-item active">Klienci i urządzenia</div>
+              <div class="side-item">Wizyty do weryfikacji</div>
+              <div class="side-item">Rozliczenia</div>
+              <div class="side-item">Listy i słowniki</div>
+              <div class="side-item">Magazyn <span class="plan-tag">W planach</span></div>
+            </div>
+            <div class="browser-main">
+              <div class="browser-toolbar">
+                <h4>Klienci</h4>
+                <div class="browser-newbtn">+ Nowy klient</div>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>Klient</th><th>Miejscowość</th><th>Strefa</th><th>Gwarancja</th><th>Ostatni serwis</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Katarzyna Zielińska</td><td>Kamieniec Wr.</td><td>B</td><td><span class="pill a">A</span></td><td>17.05.2026</td></tr>
+                  <tr><td>Marek Wójcik</td><td>Czernica</td><td>C</td><td><span class="pill a">A</span></td><td>02.06.2026</td></tr>
+                  <tr><td>Zofia Nowak</td><td>Dobrzykowice</td><td>A</td><td><span class="pill xx">XX</span></td><td>28.02.2026</td></tr>
+                  <tr><td>Roman Gocoł</td><td>Kamieniec Wr.</td><td>B</td><td><span class="pill a">A</span></td><td>04.07.2026</td></tr>
+                  <tr><td>Beata Dutkowska</td><td>Chrząstawa Mała</td><td>C</td><td><span class="pill xxx">XXX</span></td><td>23.01.2020</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="strip">
+          <div class="strip-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Weryfikacja zgłoszeń serwisantów</div>
+          <div class="strip-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Listy i słowniki edytowalne samodzielnie</div>
+          <div class="strip-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Rozliczenia bez papieru</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 AUTOMATYZACJE -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Automatyzacje</p>
+          <h2>Mniej klikania,<br>mniej pomyłek</h2>
+        </div>
+        <div class="grid grid-2">
+          <div class="auto-card">
+            <div class="auto-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <h3 style="font-size:1.05rem;">Strefa rozliczeniowa bez ręcznego liczenia</h3>
+            <p style="font-size:0.92rem;">System sam wylicza właściwą strefę i stawkę na podstawie adresu klienta i siedziby serwisanta — koniec z szacowaniem odległości „na oko”.</p>
+          </div>
+          <div class="auto-card">
+            <div class="auto-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h3 style="font-size:1.05rem;">Trasa jednym dotknięciem</h3>
+            <p style="font-size:0.92rem;">Gotowy link do nawigacji przy każdym kliencie — bez przepisywania adresu do map.</p>
+          </div>
+          <div class="auto-card">
+            <div class="auto-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <h3 style="font-size:1.05rem;">Przypomnienia o terminach</h3>
+            <p style="font-size:0.92rem;">System sam podpowiada, kiedy zbliża się termin kolejnego serwisu u danego klienta.</p>
+          </div>
+          <div class="auto-card">
+            <div class="auto-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M4 15l5-5 4 4 7-7"/></svg>
+            </div>
+            <h3 style="font-size:1.05rem;">Historia wymian bez ręcznej aktualizacji</h3>
+            <p style="font-size:0.92rem;">Daty ostatnich wymian filtrów, membrany czy mineralizatora liczą się same, na podstawie wykonanych wizyt.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 KPI DASHBOARD -->
+    <section class="slide slide--dark">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Raporty</p>
+          <h2>Liczby, które<br>pomagają zarządzać</h2>
+        </div>
+
+        <div class="kpi-layout">
+          <div class="chart-card">
+            <h3>Zrealizowane serwisy — ostatnie 6 miesięcy</h3>
+            <div class="bars">
+              <div class="bar"><div class="bar-fill" style="height:52%"></div><div class="bar-label">LUT</div></div>
+              <div class="bar"><div class="bar-fill" style="height:63%"></div><div class="bar-label">MAR</div></div>
+              <div class="bar"><div class="bar-fill" style="height:58%"></div><div class="bar-label">KWI</div></div>
+              <div class="bar"><div class="bar-fill" style="height:75%"></div><div class="bar-label">MAJ</div></div>
+              <div class="bar"><div class="bar-fill" style="height:82%"></div><div class="bar-label">CZE</div></div>
+              <div class="bar"><div class="bar-fill" style="height:100%"></div><div class="bar-label">LIP</div></div>
+            </div>
+          </div>
+
+          <div class="kpi-stack">
+            <div class="kpi-num-card">
+              <div class="val">94%</div>
+              <div class="lbl">TERMINOWOŚĆ SERWISÓW</div>
+            </div>
+            <div class="kpi-num-card">
+              <div class="val">428</div>
+              <div class="lbl">WIZYT W TYM MIESIĄCU</div>
+            </div>
+            <div class="kpi-num-card">
+              <div class="val">81%</div>
+              <div class="lbl">KLIENCI Z AKTYWNĄ GWARANCJĄ</div>
+            </div>
+          </div>
+        </div>
+        <p class="kpi-illustrative">Dane poglądowe — prezentacja przykładowego wyglądu raportu. Wskaźniki dotyczą rezultatów pracy serwisu, nie tras czy czasu pracy poszczególnych osób.</p>
+      </div>
+    </section>
+
+    <!-- 11 BEZPIECZEŃSTWO -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Bezpieczeństwo danych</p>
+          <h2>Dane pod kontrolą,<br>zawsze</h2>
+        </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Bezpieczne przechowywanie</h3>
+            <p>Dane w chmurze z automatycznymi, regularnymi kopiami zapasowymi.</p>
+          </div>
+          <div class="card">
+            <h3>Dostęp według uprawnień</h3>
+            <p>Każdy widzi tylko to, do czego ma prawo — serwisant wyłącznie swoich przypisanych klientów.</p>
+          </div>
+          <div class="card">
+            <h3>Nic nie znika bez śladu</h3>
+            <p>Każda zmiana jest zapisana i możliwa do prześledzenia — pełna historia, żadnych „cichych” modyfikacji.</p>
+          </div>
+          <div class="card">
+            <h3>Tylko dla uprawnionych</h3>
+            <p>Dostęp wyłącznie po zalogowaniu, dla osób wskazanych przez biuro.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 PLAN WDROŻENIA -->
+    <section class="slide slide--light">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Harmonogram</p>
+          <h2>Krok po kroku,<br>bez ryzyka</h2>
+        </div>
+        <div class="roadmap">
+          <div class="rm-step">
+            <div class="rm-num">01</div>
+            <div>
+              <h3>Pilotaż</h3>
+              <p>200 klientów, 2–3 serwisantów. Test rozwiązania w realnych warunkach pracy, zanim zapadnie decyzja o dalszym rozwoju.</p>
+            </div>
+          </div>
+          <div class="rm-step">
+            <div class="rm-num">02</div>
+            <div>
+              <h3>Ocena i korekty</h3>
+              <p>Wnioski z pilotażu przekładają się na poprawki — zanim system trafi do większej grupy serwisantów.</p>
+            </div>
+          </div>
+          <div class="rm-step">
+            <div class="rm-num">03</div>
+            <div>
+              <h3>Pełne wdrożenie</h3>
+              <p>Skalowanie na wszystkich serwisantów w kraju, etapami, bez przerywania bieżącej pracy serwisu.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 KOSZTY -->
+    <section class="slide slide--dark">
+      <div class="slide-inner">
+        <div class="title-row">
+          <p class="eyebrow">Koszty utrzymania</p>
+          <h2>Przewidywalny<br>koszt roczny</h2>
+        </div>
+        <table class="cost-table">
+          <thead>
+            <tr>
+              <th>Etap</th>
+              <th>Koszt miesięczny</th>
+              <th>Koszt roczny</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">Pilotaż<br><span class="mono" style="font-size:0.75rem; color:rgba(241,246,246,0.5);">200 klientów, 2–3 serwisantów</span></td>
+              <td class="price">ok. 0 zł<small>darmowe wersja Tier</small></td>
+              <td class="price">ok. 0 zł<small>darmowe wersja Tier</small></td>
+            </tr>
+            <tr>
+              <td class="label">Pełne wdrożenie<br><span class="mono" style="font-size:0.75rem; color:rgba(241,246,246,0.5);">300 serwisantów w kraju</span></td>
+              <td class="price">ok. 100 / 1000zł<small>wersja podstawowa/Pro</small></td>
+              <td class="price">ok. 1200 / 12000 zł<small>wersja podstawowa/Pro</small></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cost-highlight">
+          Koszt utrzymania nie rośnie liniowo z liczbą serwisantów — w przeciwieństwie do gotowych systemów komercyjnych rozliczanych od liczby użytkowników.
+        </div>
+        <p class="cost-footnote">Szacunek na podstawie aktualnych cen dostawców usług chmurowych (sierpień 2026), do potwierdzenia po wyborze konkretnych dostawców. Nie obejmuje jednorazowych prac wdrożeniowych, których zakres i koszt zostaną przedstawione odrębnie.</p>
+      </div>
+    </section>
+
+    <!-- 14 PODSUMOWANIE -->
+    <section class="slide slide--dark">
+      <div class="ripple" style="width:420px;height:420px;bottom:-160px;left:-100px;"></div>
+      <div class="ripple r2" style="width:280px;height:280px;bottom:-80px;left:-40px;"></div>
+      <div class="slide-inner">
+        <p class="eyebrow">Rekomendacja</p>
+        <h2 style="font-size:clamp(2rem,3.6vw,3rem); max-width:20ch;">Wdrożenie pilotażowe </h2>
+        <p style="max-width:50ch; font-size:1.05rem; margin-top:1.2rem;">Propozycja rozpoczęcia pilotażu na 200 klientach i 2–3 serwisantach, aby zweryfikować rozwiązanie w praktyce przed pełnym wdrożeniem w całej firmie.</p>
+        <ul class="closing-ask">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4FB8C4" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            W pózniejszym etapie zarządzanie Magazynem
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4FB8C4" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Stan i rozliczanie na bieżąco stanu komponentów u Serwisanta
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<button class="nav-btn prev" id="prevBtn" aria-label="Poprzedni slajd">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<button class="nav-btn next" id="nextBtn" aria-label="Następny slajd">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+</button>
+
+<div class="progress" id="progress"></div>
+<div class="hint" id="hint">UŻYJ STRZAŁEK ← → LUB PRZEWIŃ, ABY NAWIGOWAĆ</div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  const progress = document.getElementById('progress');
+  const counterNow = document.getElementById('counterNow');
+  const counterAll = document.getElementById('counterAll');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const hint = document.getElementById('hint');
+
+  counterAll.textContent = String(total).padStart(2,'0');
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'dot';
+    dot.setAttribute('aria-label', 'Przejdź do slajdu ' + (i+1));
+    dot.addEventListener('click', () => goTo(i));
+    progress.appendChild(dot);
+  });
+  const dots = Array.from(progress.querySelectorAll('.dot'));
+
+  let index = 0;
+  let animating = false;
+
+  function render(){
+    deck.style.transform = 'translateX(-' + (index * 100) + 'vw)';
+    slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    counterNow.textContent = String(index + 1).padStart(2,'0');
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === total - 1;
+  }
+
+  function goTo(i){
+    if (animating) return;
+    i = Math.max(0, Math.min(total - 1, i));
+    if (i === index) return;
+    index = i;
+    animating = true;
+    render();
+    setTimeout(() => { animating = false; }, 760);
+    dismissHint();
+  }
+
+  function next(){ goTo(index + 1); }
+  function prev(){ goTo(index - 1); }
+
+  function dismissHint(){ hint.classList.add('hidden'); }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (e.key === 'Home'){ e.preventDefault(); goTo(0); }
+    else if (e.key === 'End'){ e.preventDefault(); goTo(total - 1); }
+  });
+
+  let wheelLock = false;
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (wheelLock || animating) return;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (Math.abs(delta) < 22) return;
+    wheelLock = true;
+    if (delta > 0) next(); else prev();
+    setTimeout(() => { wheelLock = false; }, 500);
+  }, { passive:false });
+
+  let touchStartX = null;
+  window.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+  window.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 60){ diff < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, {passive:true});
+
+  setTimeout(dismissHint, 5000);
+  render();
+})();
+</script>
+</body>
+</html>
