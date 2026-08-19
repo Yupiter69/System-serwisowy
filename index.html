@@ -1,108 +1,558 @@
-(function() {
-  const deck = document.getElementById('deck');
-  const slides = Array.from(document.querySelectorAll('.slide'));
-  const total = slides.length;
-  const progress = document.getElementById('progress');
-  const counterNow = document.getElementById('counterNow');
-  const counterAll = document.getElementById('counterAll');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const hint = document.getElementById('hint');
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hydropure Polska - Prezentacja Systemu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #00d2ff;
+      --primary-glow: rgba(0, 210, 255, 0.15);
+      --secondary: #3a7bd5;
+      --text: #f0f4f8;
+      --text-dim: #94a3b8;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
 
-  if (!deck || total === 0) return;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
 
-  counterAll.textContent = String(total).padStart(2, '0');
+    .deck {
+      display: flex;
+      width: 600vw;
+      height: 100vh;
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
 
-  slides.forEach((_, i) => {
-    const dot = document.createElement('button');
-    dot.className = 'dot';
-    dot.setAttribute('aria-label', 'Przejdź do slajdu ' + (i + 1));
-    dot.addEventListener('click', () => goTo(i));
-    progress.appendChild(dot);
-  });
-  const dots = Array.from(progress.querySelectorAll('.dot'));
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      flex-shrink: 0;
+      padding: 3rem 5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow-y: auto;
+    }
 
-  let index = 0;
-  let animating = false;
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1rem;
+    }
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-num {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
 
-  function render() {
-    deck.style.transform = 'translateX(-' + (index * 100) + 'vw)';
-    slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
-    dots.forEach((d, i) => d.classList.toggle('active', i === index));
-    counterNow.textContent = String(index + 1).padStart(2, '0');
-    prevBtn.disabled = index === 0;
-    nextBtn.disabled = index === total - 1;
-  }
+    /* Nav UI */
+    .nav-ui {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: var(--primary-glow); border-color: var(--primary); }
 
-  function goTo(i) {
-    if (animating) return;
-    i = Math.max(0, Math.min(total - 1, i));
-    if (i === index) return;
-    index = i;
-    animating = true;
-    render();
-    setTimeout(() => { animating = false; }, 760);
-    dismissHint();
-  }
+    .progress-bar {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: var(--primary);
+    }
 
-  function next() { goTo(index + 1); }
-  function prev() { goTo(index - 1); }
-  function dismissHint() { if (hint) hint.classList.add('hidden'); }
-
-  prevBtn.addEventListener('click', prev);
-  nextBtn.addEventListener('click', next);
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
-    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
-    else if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
-  });
-
-  let wheelLock = false;
-  window.addEventListener('wheel', (e) => {
-    const activeSlide = slides[index];
-    const isScrollable = activeSlide.scrollHeight > activeSlide.clientHeight;
+    /* Content Layouts */
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #fff 30%, var(--text-dim));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1rem; }
     
-    // Zezwalaj na naturalny scroll wewnątrz slajdu, jeśli treść się nie mieści
-    if (isScrollable) {
-      const atTop = activeSlide.scrollTop === 0;
-      const atBottom = Math.abs(activeSlide.scrollHeight - activeSlide.clientHeight - activeSlide.scrollTop) < 2;
-      if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
-        return; 
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+    .card h3 { font-size: 1.2rem; margin-bottom: 0.75rem; color: var(--primary); }
+    .card p { font-size: 0.95rem; color: var(--text-dim); line-height: 1.5; }
+
+    /* Phone Mockup */
+    .phone-mockup {
+      width: 300px;
+      height: 580px;
+      background: #000;
+      border: 8px solid #222;
+      border-radius: 36px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .phone-screen {
+      background: #111;
+      height: 100%;
+      border-radius: 24px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .app-header { font-size: 0.8rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+    .app-card { background: #222; padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; }
+    
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.25rem;
+      margin-top: 0.5rem;
+    }
+    .btn-app {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 0.4rem 0.2rem;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.65rem;
+      text-align: center;
+      cursor: pointer;
+    }
+    .btn-app.secondary {
+      background: #333;
+      color: #fff;
+    }
+
+    /* Table styling */
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--card-border); font-size: 0.9rem; }
+    th { color: var(--primary); font-weight: 600; }
+    td { color: var(--text-dim); }
+
+    .hint-bar {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid var(--primary);
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--primary);
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .hint-bar.hidden { opacity: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="hint-bar" id="hint">Użyj strzałek, przewijaj kółkiem lub użyj gestu swipe</div>
+
+  <div class="deck" id="deck">
+
+    <!-- Slajd 1: Strona Główna -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num"><span id="counterNow">01</span> / <span id="counterAll">06</span></div>
+      </div>
+      <div>
+        <h1 class="hero-title gradient-text">System Obsługi Serwisowej<br>i Rozliczeń Terenowych</h1>
+        <p style="color: var(--text-dim); max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
+          Dedykowana platforma webowa łącząca pracę mobilną serwisantów z biurowym panelem zarządczym.
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Mobilność PWA</h3>
+          <p>Pełna obsługa na smartfonach serwisantów bez konieczności instalacji ze sklepu AppStore/Play.</p>
+        </div>
+        <div class="card">
+          <h3>Nawigacja i SMS</h3>
+          <p>Szybki kontakt z klientem oraz uruchamianie trasy dojazdu jednym kliknięciem.</p>
+        </div>
+        <div class="card">
+          <h3>Rozliczenia Strefowe</h3>
+          <p>Automatyczne wyliczanie stawek i prowizji materiałowych w czasie rzeczywistym.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slajd 2: Dawna Strona 4 (Widok telefonu z przyciskami Zadzwoń, Trasa, SMS) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num">02 / 06</div>
+      </div>
+      <div class="grid-2" style="align-items: center;">
+        <div>
+          <h2 style="font-size: 2rem; margin-bottom: 1rem;">Moduł Mobilny Serwisanta</h2>
+          <p style="color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem;">
+            Interfejs przystosowany do szybkiej pracy w terenie. Serwisant otrzymuje komplet informacji o zleceniu oraz natywne skróty ułatwiające komunikację i dojazd.
+          </p>
+          <ul style="color: var(--text-dim); margin-left: 1.2rem; line-height: 1.8;">
+            <li>Szybki wywołanie połączenia telefonicznego</li>
+            <li>Nawigacja po ścieżce GPS (Trasa)</li>
+            <li>Wysyłka gotowego powiadomienia SMS</li>
+            <li>Lista czynności serwisowych do zaznaczenia</li>
+          </ul>
+        </div>
+        <div>
+          <!-- Phone Mockup -->
+          <div class="phone-mockup">
+            <div class="phone-screen">
+              <div class="app-header">ZLECENIE #1042 - KOWALSKI</div>
+              <div class="app-card">
+                <strong>Klient:</strong> Jan Kowalski<br>
+                <strong>Adres:</strong> ul. Legnicka 45, Wrocław<br>
+                <strong>Telefon:</strong> +48 600 000 000
+                
+                <div class="btn-group">
+                  <button class="btn-app">Zadzwoń</button>
+                  <button class="btn-app secondary">Trasa</button>
+                  <button class="btn-app">SMS</button>
+                </div>
+              </div>
+              <div class="app-card" style="flex:1;">
+                <strong>Czynności:</strong><br>
+                <label><input type="checkbox" checked> Wymiana PS1, PS5</label><br>
+                <label><input type="checkbox" checked> Wymiana BL</label><br>
+                <label><input type="checkbox"> Dezynfekcja AC-IL-DZF</label><br>
+                <label><input type="checkbox"> Pomiar TDS (Wyjście: 19 ppm)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slajd 3: Dawna Strona 5 -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num">03 / 06</div>
+      </div>
+      <div>
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Panel Zarządczy Biura</h2>
+        <p style="color: var(--text-dim); max-width: 700px; line-height: 1.6;">
+          Centralny moduł do zarządzania grafikami, weryfikacji wykonanych prac oraz generowania zbiorczych raportów wypłat dla serwisantów.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Weryfikacja Kart Prac</h3>
+            <p>Biuro weryfikuje wykonane serwisy, poprawność naliczonych stawek oraz zużytych materiałów przed ostateczną akceptacją rozliczenia.</p>
+          </div>
+          <div class="card">
+            <h3>Zarządzanie Słownikami</h3>
+            <p>Możliwość edycji stawek za strefy, cen materiałów eksploatacyjnych i prowizji bez konieczności zmian w kodzie programu.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 1rem;">
+        <h3>Raporty i Archiwizacja</h3>
+        <p>System prowadzi pełną historię serwisową urządzeń u klientów wraz z logami zmian i audytem akceptacji kart przez biuro.</p>
+      </div>
+    </section>
+
+    <!-- Slajd 4: Dawna Strona 6 -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num">04 / 06</div>
+      </div>
+      <div>
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Model Rozliczeń i Strefy</h2>
+        <p style="color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem;">
+          Przejrzysty system automatycznego przeliczania wynagrodzenia serwisanta na podstawie przydzielonej strefy oraz wykonanych czynności.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Strefa / Element</th>
+              <th>Opis</th>
+              <th>Stawka Bazowa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Strefa I (Lokalna)</td>
+              <td>Dojazd do 20 km od bazy</td>
+              <td>Stawka A</td>
+            </tr>
+            <tr>
+              <td>Strefa II (Zamiejscowa)</td>
+              <td>Dojazd 20 - 50 km</td>
+              <td>Stawka B (+ dodatek)</td>
+            </tr>
+            <tr>
+              <td>Materiały / Filtry</td>
+              <td>Wymiana wkładów (PS1, PS5, BL, RO)</td>
+              <td>Prowizja % lub kwotowa</td>
+            </tr>
+            <tr>
+              <td>Usługi dodatkowe</td>
+              <td>Dezynfekcja, wymiana zbiornika, montaż</td>
+              <td>Wg taryfatora Usług</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top: 1rem;">
+        <p style="font-size: 0.85rem; color: var(--text-dim);">
+          * Wszystkie wartości stawek wyliczane są automatycznie po zamknięciu karty zgłoszenia przez serwisanta.
+        </p>
+      </div>
+    </section>
+
+    <!-- Slajd 5: Dawna Strona 7 -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num">05 / 06</div>
+      </div>
+      <div>
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Bezpieczeństwo i Bezawaryjność</h2>
+        <div class="grid-3" style="margin-top: 2rem;">
+          <div class="card">
+            <h3>Architektura Chmurowa</h3>
+            <p>Bezpieczne szyfrowanie połączeń (HTTPS/SSL) oraz separacja danych klientów i raportów finansowych.</p>
+          </div>
+          <div class="card">
+            <h3>Dostęp Role-Based (RBAC)</h3>
+            <p>Serwisant widzi wyłącznie swoje przypisane zlecenia na dany dzień. Biuro posiada pełny wgląd administracyjny.</p>
+          </div>
+          <div class="card">
+            <h3>Kopie Zapasowe</h3>
+            <p>Automatyczny backup bazy danych chroniący przed utratą historii serwisowej i rozliczeniowej.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Praca w warunkach braku zasięgu</h3>
+        <p>Aplikacja zapamiętuje wprowadzone dane w pamięci podręcznej i synchronizuje je z serwerem po odzyskaniu połączenia z siecią.</p>
+      </div>
+    </section>
+
+    <!-- Slajd 6: Dawna Strona 8 -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand">HYDROPURE POLSKA</div>
+        <div class="slide-num">06 / 06</div>
+      </div>
+      <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+        <h2 class="hero-title gradient-text" style="font-size: 2.8rem; margin-bottom: 1rem;">Szacowany Cost & Infrastruktura</h2>
+        <p style="color: var(--text-dim); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+          Optymalny dobór technologii pozwala na minimalizację stałych kosztów utrzymania przy zachowaniu wysokiej skalowalności.
+        </p>
+        <div class="grid-2" style="text-align: left;">
+          <div class="card">
+            <h3>Faza Pilotażowa</h3>
+            <p style="font-size: 1.5rem; font-weight: bold; color: var(--accent-green); margin: 0.5rem 0;">0 PLN / mszt.</p>
+            <p>Wykorzystanie darmowych pakietów chmurowych (Free Tier) przy obsłudze początkowej floty serwisantów.</p>
+          </div>
+          <div class="card">
+            <h3>Pełne Wdrożenie</h3>
+            <p style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin: 0.5rem 0;">~100 - 1000 PLN / mszt.</p>
+            <p>Niskie koszty serwera w zależności od skali bazy danych i liczby aktywnych zgłoszeń miesięcznie.</p>
+          </div>
+        </div>
+      </div>
+      <div style="text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+        Hydropure Polska &copy; 2026 - Dedykowany System Serwisowy
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Nav UI -->
+  <div class="progress-bar" id="progress"></div>
+
+  <div class="nav-ui">
+    <button class="nav-btn" id="prevBtn" aria-label="Poprzedni slajd">&#8592;</button>
+    <button class="nav-btn" id="nextBtn" aria-label="Następny slajd">&#8594;</button>
+  </div>
+
+  <script>
+    (function() {
+      const deck = document.getElementById('deck');
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const total = slides.length;
+      const progress = document.getElementById('progress');
+      const counterNow = document.getElementById('counterNow');
+      const counterAll = document.getElementById('counterAll');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const hint = document.getElementById('hint');
+
+      if (!deck || total === 0) return;
+
+      if (counterAll) counterAll.textContent = String(total).padStart(2, '0');
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.setAttribute('aria-label', 'Przejdź do slajdu ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        progress.appendChild(dot);
+      });
+      const dots = Array.from(progress.querySelectorAll('.dot'));
+
+      let index = 0;
+      let animating = false;
+
+      function render() {
+        deck.style.transform = 'translateX(-' + (index * 100) + 'vw)';
+        slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
+        dots.forEach((d, i) => d.classList.toggle('active', i === index));
+        if (counterNow) counterNow.textContent = String(index + 1).padStart(2, '0');
+        if (prevBtn) prevBtn.disabled = index === 0;
+        if (nextBtn) nextBtn.disabled = index === total - 1;
       }
-    }
 
-    e.preventDefault();
-    if (wheelLock || animating) return;
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(delta) < 22) return;
-    
-    wheelLock = true;
-    if (delta > 0) next(); else prev();
-    setTimeout(() => { wheelLock = false; }, 500);
-  }, { passive: false });
+      function goTo(i) {
+        if (animating) return;
+        i = Math.max(0, Math.min(total - 1, i));
+        if (i === index) return;
+        index = i;
+        animating = true;
+        render();
+        setTimeout(() => { animating = false; }, 760);
+        dismissHint();
+      }
 
-  let touchStartX = null;
-  let touchStartY = null;
+      function next() { goTo(index + 1); }
+      function prev() { goTo(index - 1); }
+      function dismissHint() { if (hint) hint.classList.add('hidden'); }
 
-  window.addEventListener('touchstart', (e) => { 
-    touchStartX = e.touches[0].clientX; 
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
+      if (prevBtn) prevBtn.addEventListener('click', prev);
+      if (nextBtn) nextBtn.addEventListener('click', next);
 
-  window.addEventListener('touchend', (e) => {
-    if (touchStartX === null || touchStartY === null) return;
-    const diffX = touchStartX - e.changedTouches[0].clientX;
-    const diffY = touchStartY - e.changedTouches[0].clientY;
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+        else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+        else if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+      });
 
-    // Przełączaj slajd tylko przy wyraźnym geście poziomym (większym niż pionowy)
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
-      if (diffX > 0) next(); else prev();
-    }
-    touchStartX = null;
-    touchStartY = null;
-  }, { passive: true });
+      let wheelLock = false;
+      window.addEventListener('wheel', (e) => {
+        const activeSlide = slides[index];
+        const isScrollable = activeSlide.scrollHeight > activeSlide.clientHeight;
+        
+        if (isScrollable) {
+          const atTop = activeSlide.scrollTop === 0;
+          const atBottom = Math.abs(activeSlide.scrollHeight - activeSlide.clientHeight - activeSlide.scrollTop) < 2;
+          if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+            return; 
+          }
+        }
 
-  render();
-})();
+        e.preventDefault();
+        if (wheelLock || animating) return;
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        if (Math.abs(delta) < 22) return;
+        
+        wheelLock = true;
+        if (delta > 0) next(); else prev();
+        setTimeout(() => { wheelLock = false; }, 500);
+      }, { passive: false });
+
+      let touchStartX = null;
+      let touchStartY = null;
+
+      window.addEventListener('touchstart', (e) => { 
+        touchStartX = e.touches[0].clientX; 
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        if (touchStartX === null || touchStartY === null) return;
+        const diffX = touchStartX - e.changedTouches[0].clientX;
+        const diffY = touchStartY - e.changedTouches[0].clientY;
+
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+          if (diffX > 0) next(); else prev();
+        }
+        touchStartX = null;
+        touchStartY = null;
+      }, { passive: true });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
